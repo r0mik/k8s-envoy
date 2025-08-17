@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vpnaas
+  labels:
+    name: vpnaas
+    app: vpnaas

@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vpnaas-backend
+  namespace: vpnaas
+  labels:
+    app: vpnaas
+    component: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vpnaas
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: vpnaas
+        component: backend
+    spec:
+      containers:
+      - name: backend
+        image: vpnaas-backend:latest
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: VPNAAS_DEBUG
+          value: "false"
+        - name: VPNAAS_SERVER_PORT
+          value: "8080"
+        - name: VPNAAS_K8S_NAMESPACE
+          value: "vpnaas"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: vpnaas-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vpnaas-backend
+  namespace: vpnaas
+  labels:
+    app: vpnaas
+    component: backend
+spec:
+  selector:
+    app: vpnaas
+    component: backend
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+  type: ClusterIP

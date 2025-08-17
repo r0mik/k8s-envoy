@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vpnaas-config
+  namespace: vpnaas
+data:
+  config.yaml: |
+    server:
+      port: "8080"
+      host: "0.0.0.0"
+    
+    vpn:
+      wireguard_port: "51820"
+      pod_cpu_limit: "100m"
+      pod_memory_limit: "128Mi"
+      pod_cpu_request: "50m"
+      pod_memory_request: "64Mi"
+      image: "linuxserver/wireguard:latest"
+      endpoint: "your-vpn-endpoint.com"
+    
+    k8s:
+      namespace: "vpnaas"
+      pod_labels:
+        app: "vpnaas"
+        component: "vpn"

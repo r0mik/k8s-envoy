@@ -1,0 +1,56 @@
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: Gateway
+metadata:
+  name: vpnaas-gateway
+  namespace: vpnaas
+spec:
+  gatewayClassName: envoy
+  listeners:
+  - name: http
+    port: 80
+    protocol: HTTP
+    allowedRoutes:
+      namespaces:
+        from: Same
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: HTTPRoute
+metadata:
+  name: vpnaas-routes
+  namespace: vpnaas
+spec:
+  parentRefs:
+  - name: vpnaas-gateway
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api
+    backendRefs:
+    - name: vpnaas-backend
+      port: 8080
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: vpnaas-frontend
+      port: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vpnaas-gateway
+  namespace: vpnaas
+  labels:
+    app: vpnaas
+    component: gateway
+spec:
+  selector:
+    app: vpnaas
+    component: gateway
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  type: LoadBalancer
